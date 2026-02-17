@@ -3,9 +3,10 @@ import React, { useEffect, useRef, useState } from 'react';
 interface MemeCanvasProps {
   imageSrc: string;
   caption: string;
+  rank?: number;
 }
 
-export const MemeCanvas: React.FC<MemeCanvasProps> = ({ imageSrc, caption }) => {
+export const MemeCanvas: React.FC<MemeCanvasProps> = ({ imageSrc, caption, rank }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
 
@@ -31,81 +32,134 @@ export const MemeCanvas: React.FC<MemeCanvasProps> = ({ imageSrc, caption }) => 
       if (caption) {
         const fontFamily = '"Noto Sans SC", "Hiragino Kaku Gothic ProN", "Noto Sans CJK SC", sans-serif';
         
-        // Initial Target: 8% of image height
-        let fontSize = Math.floor(canvas.height * 0.08); 
+        // Initial Target: 10% of image height for better mobile visibility
+        let fontSize = Math.floor(canvas.height * 0.10); 
         
-        // Ensure font is loaded before measuring to avoid "sans-serif" width (which is usually narrower)
         try {
            await document.fonts.load(`900 ${fontSize}px "Noto Sans SC"`);
         } catch (e) {
-           console.warn("Font loading failed or timed out, proceeding with fallback", e);
+           console.warn("Font fallback", e);
         }
 
         ctx.font = `900 ${fontSize}px ${fontFamily}`;
         
-        // Max width is 90% of the canvas (leaving 5% margin on each side for safety)
-        const maxTextWidth = canvas.width * 0.90;
+        // Max width is 92% of the canvas
+        const maxTextWidth = canvas.width * 0.92;
         const textMetrics = ctx.measureText(caption);
         const textWidth = textMetrics.width;
 
-        // --- Improved Scale to Fit Logic ---
-        // If text is too wide, scale down the font size with a safety buffer
+        // Scale down to fit
         if (textWidth > maxTextWidth) {
           const scaleFactor = maxTextWidth / textWidth;
-          // Scale down slightly more (0.95) to be absolutely sure it fits
           fontSize = Math.floor(fontSize * scaleFactor * 0.95);
           ctx.font = `900 ${fontSize}px ${fontFamily}`;
         }
         
-        // Re-center logic
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
 
         const x = canvas.width / 2;
-        const y = canvas.height - (canvas.height * 0.05); // 5% padding from bottom
+        const y = canvas.height - (canvas.height * 0.05);
 
-        // 1. Text Outline (Stroke)
-        // Use a thick stroke for standard meme look
+        // Stroke
         ctx.strokeStyle = 'black';
-        ctx.lineWidth = fontSize * 0.25; // 25% of font size for a nice thick border
+        ctx.lineWidth = Math.max(4, fontSize * 0.2); 
         ctx.lineJoin = 'round';
-        ctx.miterLimit = 2;
         ctx.strokeText(caption, x, y);
 
-        // 2. Text Fill
+        // Fill
         ctx.fillStyle = 'white';
         ctx.fillText(caption, x, y);
       }
 
-      // Generate download URL
       setDownloadUrl(canvas.toDataURL('image/png'));
     };
   }, [imageSrc, caption]);
 
+  // Cyberpunk Rank Styles
+  const getRankStyles = () => {
+    switch (rank) {
+      case 1: return { 
+        border: 'border-yellow-400', 
+        shadow: 'shadow-[0_0_30px_-5px_rgba(250,204,21,0.5)]', 
+        badge: 'bg-yellow-400 text-black', 
+        label: '#1. RELATABLE',
+        desc: '最共鸣'
+      };
+      case 2: return { 
+        border: 'border-purple-500', 
+        shadow: 'shadow-[0_0_30px_-5px_rgba(217,70,239,0.5)]', 
+        badge: 'bg-purple-500 text-white', 
+        label: '#2. ABSURD',
+        desc: '最荒谬'
+      };
+      case 3: return { 
+        border: 'border-cyan-500', 
+        shadow: 'shadow-[0_0_30px_-5px_rgba(6,182,212,0.5)]', 
+        badge: 'bg-cyan-500 text-black', 
+        label: '#3. SNARK',
+        desc: '最毒舌'
+      };
+      default: return { 
+        border: 'border-neutral-800', 
+        shadow: 'shadow-none', 
+        badge: 'hidden', 
+        label: '', 
+        desc: ''
+      };
+    }
+  };
+
+  const styles = getRankStyles();
+
   return (
-    <div className="flex flex-col items-center w-full max-w-4xl">
-      {/* Visual Display */}
-      <div className="relative rounded-lg overflow-hidden shadow-2xl border-4 border-gray-800 bg-gray-900">
+    <div className="w-full relative group">
+       {/* Badge */}
+       {rank && (
+        <div className="absolute -top-3 left-4 z-10 flex items-center gap-2">
+            <div className={`px-3 py-1 text-xs font-bold tracking-widest uppercase transform -skew-x-12 shadow-lg ${styles.badge}`}>
+            {styles.label}
+            </div>
+            <div className="text-[10px] text-neutral-500 font-mono hidden sm:block">
+               // {styles.desc}
+            </div>
+        </div>
+      )}
+
+      {/* Canvas Container */}
+      <div className={`relative rounded-sm overflow-hidden border-2 bg-[#111] transition-all duration-500 ${styles.border} ${styles.shadow}`}>
         <canvas 
           ref={canvasRef} 
-          className="max-w-full h-auto max-h-[70vh] object-contain"
+          className="w-full h-auto object-contain block"
         />
+        
+        {/* Hover Overlay for PC */}
+        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none lg:pointer-events-auto">
+             <div className="pointer-events-auto">
+                {downloadUrl && (
+                <a
+                    href={downloadUrl}
+                    download={`oogiri_${rank}_${Date.now()}.png`}
+                    className="bg-white text-black px-6 py-2 font-bold hover:bg-yellow-400 transition-colors uppercase tracking-wider text-sm clip-path-polygon"
+                >
+                    Save Image
+                </a>
+                )}
+             </div>
+        </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="mt-6">
-        {downloadUrl && (
-          <a
-            href={downloadUrl}
-            download={`oogiri_meme_${Date.now()}.png`}
-            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-black bg-yellow-400 hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-all transform hover:scale-105"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
-            保存大喜利图片
-          </a>
-        )}
+      {/* Mobile Download Button (Always visible on small screens) */}
+      <div className="mt-3 flex justify-end lg:hidden">
+         {downloadUrl && (
+            <a
+                href={downloadUrl}
+                download={`oogiri_${rank}_${Date.now()}.png`}
+                className="text-xs text-neutral-400 border-b border-neutral-700 pb-1 uppercase tracking-widest hover:text-white"
+            >
+                [ Download_Image ]
+            </a>
+         )}
       </div>
     </div>
   );
