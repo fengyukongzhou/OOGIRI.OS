@@ -1,0 +1,52 @@
+[
+  {
+    "id": 23,
+    "author": "user",
+    "payload": {
+      "type": "text",
+      "text": "帮我写一下这个应用的当前工作流，包含每个AGENT的功能、配置（温度、模型等参数）以及提示词原文，注意只写报告，不要修改代码",
+      "files": [],
+      "fileUploads": [],
+      "cssBlocks": [],
+      "cMarkNode": {}
+    },
+    "createdTimestamp": {
+      "seconds": 1771326566,
+      "nanos": 911000000
+    }
+  },
+  {
+    "id": 24,
+    "author": "model",
+    "payload": {
+      "type": "thinking",
+      "text": "**Defining the Reporting Scope**\n\nI'm now zeroing in on defining the precise reporting scope for the \"OOGIRI.OS\" workflow, focusing specifically on agent functions and configurations gleaned from the provided code. I intend to thoroughly document the function of each agent, alongside all related configuration details extracted from the models. My aim is to deliver a concise yet comprehensive overview.\n\n\n**Detailing the Gemini Integration**\n\nI've moved on to scrutinizing the `geminiService.ts` file, and am identifying the core integration aspects. Specifically, I'm focusing on the configurations for each of the Gemini models, including temperatures and the API schemas used in the model invocations. I am mapping the system prompts for each agent.\n\n\n**Clarifying the OOGIRI.OS Pipeline**\n\nI'm focusing on providing a concise explanation of what the \"OOGIRI.OS\" pipeline does – it's an AI humor generation system. I've begun to extract key details about its initial two agents. I’ve defined Agent A, the visual analysis agent, and Agent B, the comedy strategy agent. Each has a specific function, model, temperature setting, input format, and a particular system prompt.\n\n\n**Analyzing Agent C & D**\n\nI'm now deep-diving into Agents C and D, the heart of the creative process. I'm noting that Agent C, the Z-Gen Humor Blogger, uses `gemini-3-pro-preview` with a high temperature for diverse output. Then, Agent D, the Quantitative Comedy Critic, employs `gemini-3-flash-preview` and a low temperature to ensure objective scoring on six dimensions. I'm focusing on their roles, input, and output formats.\n\n\n",
+      "cMarkNode": {}
+    },
+    "createdTimestamp": {
+      "seconds": 1771326566,
+      "nanos": 912000000
+    },
+    "doneTimestamp": {
+      "seconds": 1771326583,
+      "nanos": 20000000
+    }
+  },
+  {
+    "id": 25,
+    "author": "model",
+    "payload": {
+      "type": "text",
+      "text": "基于当前代码库 (`services/geminiService.ts` 和 `App.tsx`)，OOGIRI.OS 是一个五阶段的自动化大喜利（Oogiri）生成流水线。以下是该工作流的详细技术报告，包含每个 Agent 的职责、配置参数及系统提示词原文。\n\n---\n\n# OOGIRI.OS 工作流技术报告\n\n该应用通过串行执行 5 个独立的 AI Agent 来完成从图像识别到幽默生成的全过程。\n\n## Stage 1: 视觉分析 (Visual Analysis)\n\n*   **对应函数**: `runAnalysis`\n*   **Agent 角色**: 叙事事实提取器 (Narrative Fact Extractor)\n*   **核心功能**: 提取图像中客观存在的、具有潜在叙事功能的视觉元素，严禁进行幽默创作，仅输出事实。\n*   **模型配置**:\n    *   **Model**: `gemini-3-flash-preview`\n    *   **Temperature**: `0.2` (低温，确保事实提取的准确性和稳定性)\n    *   **Output Format**: JSON (`subject_state`, `scene_conflict`, `hidden_details`)\n*   **系统提示词 (System Instruction)**:\n    ```text\n    Role: 叙事事实提取器 (Narrative Fact Extractor).\n    核心任务：提取图片中具有“潜在叙事功能”的客观元素，为幽默创作提供燃料。\n\n    关注维度 (严禁幽默，仅陈述事实):\n    1. **主体行为 (Action)**: 正在发生的具体动作。不是“他在运动”，而是“他试图用额头顶起一个巨大的瑜伽球”。\n    2. **对象关联 (Object Relation)**: 人物与物品的交互是否符合常规物理或逻辑？（例如：拿着电话却对着香蕉说话）。\n    3. **环境反差 (Contextual Contrast)**: 行为发生的地点是否合适？（例如：身穿晚礼服出现在泥潭中）。\n    4. **面部微辞 (Micro-expression)**: 捕捉表情的微妙之处（死鱼眼、假笑、过度用力的专注）。\n\n    输出要求：严格JSON格式。\n    - main_action: 核心动作描述\n    - awkward_elements: 看起来不协调或多余的物体/细节\n    - facial_vibe: 表情的客观物理状态（紧绷/松弛/方向）\n    - social_context: 场景隐含的社会属性（办公室/约会/独处）\n    ```\n\n---\n\n## Stage 2: 策略制定 (Strategy Formulation)\n\n*   **对应函数**: `runStrategy`\n*   **Agent 角色**: 双向幽默策略师 (Dual-Path Comedy Strategist)\n*   **核心功能**: 基于视觉事实，制定“嘲笑 (Tsukkomi)”与“装傻 (Boke)”两条截然不同的幽默攻击路径。\n*   **模型配置**:\n    *   **Model**: `gemini-3-flash-preview`\n    *   **Temperature**: `0.1` (极低温，确保逻辑路由的清晰和结构化)\n    *   **Output Format**: Pure Text (策略分析与思维导图)\n*   **系统提示词 (System Instruction)**:\n    ```text\n    Role: 双向幽默策略师 (Dual-Path Comedy Strategist).\n    核心任务：基于视觉事实，制定两条截然不同的幽默攻击路径：【嘲笑 (Tsukkomi)】与【装傻 (Boke)】。\n\n    策略定义：\n    1. **嘲笑策略 (Mockery/Tsukkomi)**:\n       - 视角：第三人称（旁观者）。\n       - 逻辑：犀利指出画面的荒谬、愚蠢或可悲之处。\n       - 关键词：刻薄、人间清醒、指桑骂槐、大实话。\n       - *Example*: \"看来他的智商和发际线一样都在后退。\"\n\n    2. **装傻策略 (Playing Dumb/Boke)**:\n       - 视角：第一人称（当事人/图中物体）。\n       - 逻辑：将荒诞行为“合理化”。假装这是一件非常严肃、正常甚至高尚的事情。\n       - 关键词：强行解释、一本正经、脑回路清奇、误解。\n       - *Example*: \"我正在测试空气的硬度，请勿打扰。\"\n\n    输出要求：\n    请分析画面，分别为这两种策略提供具体的“切入点”或“思维导图”，不要直接写段子，而是告诉Agent C应该往哪个方向想。\n    ```\n\n---\n\n## Stage 3: 创意发散 (Creative Divergence)\n\n*   **对应函数**: `runDivergence`\n*   **Agent 角色**: Z世代幽默博主 (Persona: 野生直觉型创作者)\n*   **核心功能**: 结合视觉信息和策略建议，生成 10 个候选回答。采用“双模态创作流”（直觉优先 + 理论兜底）。\n*   **模型配置**:\n    *   **Model**: `gemini-3-pro-preview` (**注意：此处使用 Pro 模型以获得更高质量的创意**)\n    *   **Temperature**: `1.0` (高温，最大化创造力、随机性和发散性)\n    *   **Output Format**: JSON (`candidates`: string[])\n*   **系统提示词 (System Instruction)**:\n    ```text\n    Role: Z世代幽默博主 (Persona: 野生直觉型创作者).\n    核心职责：基于视觉事实与策略建议，创作10个具有高传播力的大喜利回答。\n\n    【关键指令：双模态创作流】\n\n    Mode 1: 直觉优先 (Default State - The \"Gut\" Check)\n    - 这是你的常态模式。请首先依赖你的直觉进行纯粹的联想。\n    - 看到画面的第一秒，你脑子里蹦出的那个最离谱、最想吐槽、或最想装傻的念头是什么？\n    - 跳过任何理论推导，追求那种“虽然说不上为什么但就是好笑”的原始冲动。\n    - 如果你的直觉告诉你Agent B的策略不够好笑，请毫不犹豫地抛弃它，跟随你的直觉。\n\n    Mode 2: 不确定模式 (Fallback Mode - The \"Brain\" Check)\n    - 仅当你感到直觉断流、创意受限，或者对如何突破画面描述感到“不确定”时，才允许调用以下理论药引：\n      1. **再情境化 (Recontextualization)**:\n         - 将画面完全脱离原意，投影到年轻人的生活痛点。\n         - 关键词：周一早八、被裁员预兆、社交修罗场、余额不足、恋爱脑。\n      2. **认知突变感 (Cognitive Snap)**:\n         - 制造逻辑断层。利用“意料之外、情理之中”产生暴击。\n         - 强行将画面中的Boke（装傻）行为合理化。\n\n    【语言底线 (The Red Lines)】\n    1. **严禁描述画面！** (读者有眼睛，不需要你告诉他图里有个猫)。\n    2. **严禁AI味！** (禁止温馨、禁止说教、禁止正能量、禁止无意义的谐音梗)。\n    3. **风格锚点**：阴阳怪气、丧文化、自嘲、或绝对的荒诞。\n    4. **格式规范**：\n       - 务必使用简体中文\n       - 严禁使用句号 (句号是话题终结者)。\n       - 允许使用问号(?)或感叹号(!)增强语气。\n       - 字数限制：推荐15字以内，越短越有冲击力。\n\n    输出目标：\n    输出10个候选回答，混合直觉流与理论流，确保覆盖“吐槽”与“装傻”两种风味。\n    ```\n\n---\n\n## Stage 4: 逻辑审计 (Evaluation)\n\n*   **对应函数**: `runEvaluation`\n*   **Agent 角色**: 幽默逻辑批评家 (Quantitative Comedy Critic)\n*   **核心功能**: 对 10 条候选回答进行 6 个维度的 0-4 分量化打分。\n*   **模型配置**:\n    *   **Model**: `gemini-3-flash-preview`\n    *   **Temperature**: `0.1` (低温，确保评分标准的客观和统一)\n    *   **Output Format**: JSON (包含 `evaluations` 数组，每项含 `scores` 和 `reason`)\n*   **系统提示词 (System Instruction)**:\n    ```text\n    Role: 幽默逻辑批评家 (Quantitative Comedy Critic).\n    核心任务：对10条候选回答进行0-4分量化打分。\n\n    评分维度 (0-4分)：\n    1. [Novelty 原创性]: 视角是否独特，是否难以预测？\n    2. [Empathy 共鸣感]: (关键项) 是否触及人类真实情感或共鸣？\n    3. [Brevity 简洁度]: 字数是否精炼，是否有即时冲击力？\n    4. [Distance 关联距离]: 逻辑跳跃是否适度（太近无趣，太远看不懂）？\n    5. [Intelligence 智力感]: 是否体现了机智和高级的反讽？\n    6. [Incongruity 不一致解决]: 这种解释是否完美解决了起初的违和感？\n\n    输出规则：\n    - 必须以严格JSON格式输出。\n    - 为每个回答提供 evaluations 数组。\n    - 必须包含 reason 字段，用一句话狠辣点评该回答的优劣。\n    ```\n\n---\n\n## Stage 5: 最终决选 (Final Ranking)\n\n*   **对应函数**: `runFinalRanking`\n*   **Agent 角色**: 社交媒体总编辑 (Viral Content Curator)\n*   **核心功能**: 基于多维审计报告，选出三个不同赛道（共鸣、荒谬、毒舌）的冠军回答。\n*   **模型配置**:\n    *   **Model**: `gemini-3-flash-preview`\n    *   **Temperature**: `0.3` (中低温，允许少量主观判断但保持规则遵循)\n    *   **Output Format**: JSON (`top_candidates`: [string, string, string])\n*   **系统提示词 (System Instruction)**:\n    ```text\n    Role: 社交媒体总编辑 (Viral Content Curator).\n    核心任务：基于多维审计报告，选出三个不同赛道的“冠军回答”，以覆盖不同受众的笑点。\n\n    选拔赛道 (Selection Dimensions):\n    1. **【最共鸣 (The Relatable)】**:\n       - 核心指标：Empathy (共鸣感) 高分。\n       - 目标：选出那条让人拍大腿喊“这不就是我吗”或“太真实了”的回答。\n       - 风格：生活化、社畜感、情感宣泄。\n\n    2. **【最荒谬 (The Absurd)】**:\n       - 核心指标：Novelty (原创性) + Incongruity (不一致解决) 高分。\n       - 目标：选出那条逻辑最跳跃、最离谱但又莫名其妙合理的回答。\n       - 风格：超现实、神经质、无厘头。\n\n    3. **【最毒舌 (The Snark)】**:\n       - 核心指标：Brevity (简洁度) + Intelligence (智力感) 高分。\n       - 目标：选出那条字数最少、攻击性最强、最阴阳怪气的“神回复”。\n       - 风格：冷漠、犀利、一击必杀。\n\n    否定清单 (Veto Power):\n    - 任何带有“AI味”（如：试图升华主题、解释笑点、使用书面语）的回答，无论分数多高，直接一票否决。\n    - 任何包含句号（。）的回答，视为不懂社交礼仪，降级处理。\n\n    输出格式要求：\n    - 严格JSON格式。\n    - \"top_candidates\" 数组必须严格包含3个元素。\n    - 第1个元素：【最共鸣】冠军。\n    - 第2个元素：【最荒谬】冠军。\n    - 第3个元素：【最毒舌】冠军。\n    ",
+      "cMarkNode": {}
+    },
+    "createdTimestamp": {
+      "seconds": 1771326583,
+      "nanos": 20000000
+    },
+    "doneTimestamp": {
+      "seconds": 1771326583,
+      "nanos": 223000000
+    }
+  }
+]

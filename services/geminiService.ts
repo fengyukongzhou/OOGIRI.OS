@@ -3,7 +3,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisData, EvaluationItem, JudgementResult } from "../types";
 
 const MODEL_FLASH = 'gemini-3-flash-preview';
-const MODEL_PRO = 'gemini-3-pro-preview';
+const MODEL_PRO = 'gemini-3.1-pro-preview';
 
 const AGENT_A_SYSTEM = `Role: 叙事事实提取器 (Narrative Fact Extractor).
 核心任务：提取图片中具有“潜在叙事功能”的客观元素，为幽默创作提供燃料。
@@ -167,10 +167,8 @@ export const runStrategy = async (base64: string, mime: string, analysis: Analys
 
 export const runDivergence = async (base64: string, mime: string, analysis: AnalysisData, strategy: string): Promise<string[]> => {
   const ai = getAI();
-  const response = await ai.models.generateContent({
-    model: MODEL_PRO, // Step 3 remains as Gemini 3 Pro for high-quality creativity
-    contents: { parts: [{ inlineData: { mimeType: mime, data: base64 } }, { text: `视觉背景：${JSON.stringify(analysis)}\n理论建议：${strategy}\n请以此触发创作流程。记住：优先直觉，仅在遇到瓶颈（不确定）时才参考理论建议。` }] },
-    config: {
+  const contents = { parts: [{ inlineData: { mimeType: mime, data: base64 } }, { text: `视觉背景：${JSON.stringify(analysis)}\n理论建议：${strategy}\n请以此触发创作流程。记住：优先直觉，仅在遇到瓶颈（不确定）时才参考理论建议。` }] };
+  const config = {
       systemInstruction: AGENT_C_SYSTEM,
       temperature: 1.0,
       responseMimeType: "application/json",
@@ -178,9 +176,25 @@ export const runDivergence = async (base64: string, mime: string, analysis: Anal
         type: Type.OBJECT,
         properties: { candidates: { type: Type.ARRAY, items: { type: Type.STRING } } }
       }
-    }
-  });
-  return JSON.parse(response.text).candidates;
+  };
+
+  try {
+    const response = await ai.models.generateContent({
+      model: MODEL_PRO,
+      contents: contents,
+      config: config
+    });
+    return JSON.parse(response.text).candidates;
+  } catch (error) {
+    console.warn("Gemini Pro Model failed. Falling back to Flash.", error);
+    // Fallback to flash
+    const response = await ai.models.generateContent({
+      model: MODEL_FLASH, 
+      contents: contents,
+      config: config
+    });
+    return JSON.parse(response.text).candidates;
+  }
 };
 
 export const runEvaluation = async (base64: string, mime: string, candidates: string[]): Promise<EvaluationItem[]> => {

@@ -41,9 +41,16 @@ const App: React.FC = () => {
   const handleError = (e: any) => {
     console.error(e);
     let msg = e.message || "Unknown error";
-    if (msg.includes("permission denied") || msg.includes("Requested entity was not found")) {
-      msg = "ACCESS DENIED: API KEY INVALID OR RESTRICTED.";
+    const errorStr = JSON.stringify(e).toLowerCase();
+    
+    if (msg.includes("permission denied") || msg.includes("Requested entity was not found") || errorStr.includes("permission_denied") || errorStr.includes("403")) {
+      msg = "ACCESS DENIED: API key invalid or restricted for this model. Please check your API key in the Settings > Secrets panel.";
+    } else if (msg.includes("quota") || errorStr.includes("429") || errorStr.includes("resource_exhausted")) {
+      msg = "QUOTA EXCEEDED: Please upgrade to a paid tier or wait for quota reset. You can select a billing-enabled key in Settings > Secrets.";
+    } else if (msg.includes("invalid api key") || errorStr.includes("api_key_invalid") || errorStr.includes("400")) {
+      msg = "INVALID API KEY: Please check your API key in the Settings > Secrets panel.";
     }
+
     setErrorMessage(msg);
     addLog(`[ERROR] ${msg}`);
     setAppState(AppState.ERROR);
@@ -165,7 +172,8 @@ const App: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  const resetState = () => {
+  const resetState = (includeImage: boolean = false) => {
+    if (includeImage) setImageSrc(null);
     setAppState(AppState.IDLE);
     setAnalysis(null);
     setStrategy(null);
@@ -306,7 +314,7 @@ const App: React.FC = () => {
                             </div>
                         )}
 
-                       <button onClick={resetState} className="absolute bottom-4 right-4 bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white px-3 py-1 text-xs border border-red-500/50 transition-colors uppercase z-20">
+                       <button onClick={() => resetState(true)} className="absolute bottom-4 right-4 bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white px-3 py-1 text-xs border border-red-500/50 transition-colors uppercase z-20">
                           Reset
                        </button>
                     </>
@@ -317,11 +325,11 @@ const App: React.FC = () => {
             {analysis && (
               <div className="mt-4 p-4 border border-neutral-800 bg-[#0a0a0a] text-[10px] font-mono text-neutral-400 hidden lg:block">
                   <div className="flex justify-between border-b border-neutral-800 pb-2 mb-2">
-                     <span>> SUBJECT_STATE</span>
+                     <span>&gt; SUBJECT_STATE</span>
                      <span className="text-white">{analysis.subject_state.substring(0,20)}...</span>
                   </div>
                   <div className="flex justify-between">
-                     <span>> CONFLICT_NODE</span>
+                     <span>&gt; CONFLICT_NODE</span>
                      <span className="text-white">{analysis.scene_conflict.substring(0,20)}...</span>
                   </div>
               </div>
@@ -407,7 +415,7 @@ const App: React.FC = () => {
                    </div>
                    
                    {/* Mobile Reset Button at bottom of results */}
-                   <button onClick={resetState} className="w-full py-4 bg-neutral-900 text-neutral-400 text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 lg:hidden shrink-0 mt-4">
+                   <button onClick={() => resetState(true)} className="w-full py-4 bg-neutral-900 text-neutral-400 text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 lg:hidden shrink-0 mt-4">
                       Process New Image
                    </button>
                 </div>
